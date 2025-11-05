@@ -1,0 +1,6 @@
+services:
+  tests:
+    build: .
+    network_mode: host
+    environment:
+      BASE_URL: "http://localhost"
