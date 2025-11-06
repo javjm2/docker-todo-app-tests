@@ -170,5 +170,4 @@ def send_keys_to_input(driver, await_clickable):
 
 @pytest.fixture()
 def go_to_site(driver):
-    driver.get("http://localhost")
-
+    driver.get(os.getenv("BASE_URL", "http://localhost:3000"))

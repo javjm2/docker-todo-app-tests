@@ -26,7 +26,7 @@ def custom_requests():
 
 @pytest.fixture
 def base_url():
-    return os.getenv("BASE_URL", "http://localhost:3000/api")
+    return os.getenv("BASE_URL", "http://localhost:3000")
 
 
 @pytest.fixture
