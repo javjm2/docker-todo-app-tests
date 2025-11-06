@@ -1,14 +1,18 @@
-services:
+version: "3.9"
 
+services:
   app:
-    image: javjm/getting-started-todo-app:latest
-    network_mode: host
+    image: javjm/getting-started-todo-app:latest  # Pulled image
+    ports:
+      - "3000:3000"         # Map container port 3000 → host port 3000
+    command: ["node", "src/index.js"]  # Start the app
 
 
   tests:
     build: .
     network_mode: host
     environment:
-      BASE_URL: "http://localhost"
+      BASE_URL: "http://localhost:3000/api"
     depends_on:
       - app
+    command: ["pytest",  "-vv"]

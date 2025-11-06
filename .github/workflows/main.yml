@@ -18,11 +18,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 3️⃣ Pull app image from Docker Hub
-      - name: Pull app image
-        run: |
-          docker pull javjm/getting-started-todo-app:latest
-          
       - name: Run tests against pulled image
-        run: docker compose up --exit-code-from tests --abort-on-container-exit
+        run: docker compose up --build --exit-code-from tests --abort-on-container-exit
 
