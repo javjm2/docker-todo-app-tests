@@ -22,5 +22,7 @@ jobs:
       - name: Pull app image
         run: |
           docker pull javjm/getting-started-todo-app:latest
-          docker compose up --build
+          
+      - name: Run tests against pulled image
+        run: docker compose up --exit-code-from tests --abort-on-container-exit
 

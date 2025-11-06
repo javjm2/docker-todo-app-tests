@@ -1,4 +1,10 @@
 services:
+
+  app:
+    image: javjm/getting-started-todo-app:latest
+    network_mode: host
+
+
   tests:
     build: .
     network_mode: host
