@@ -11,6 +11,22 @@ jobs:
       - name: Checkout test repo
         uses: actions/checkout@v4
 
-      - name: Run tests against pulled image
-        run: docker compose up --build --exit-code-from tests --abort-on-container-exit
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Pull app image
+        run: docker pull javjm/getting-started-todo-app:latest
+
+      - name: Run the tests against the pulled app
+        run: |
+          # Start the app container
+          docker run -d --name app -p 3000:3000 javjm/getting-started-todo-app:latest
+          
+          # Run tests container, passing BASE_URL
+          docker compose up --build --exit-code-from tests --abort-on-container-exit
+          
+          # Stop the app container
+          docker stop app
