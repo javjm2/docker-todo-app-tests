@@ -1,7 +1,13 @@
 services:
+  app:
+    image: javjm/getting-started-todo-app:latest
+    ports:
+      - "3000:3000"
+
   tests:
     build: .
-    network_mode: host
     environment:
-      BASE_URL: "http://localhost:3000"
-    command: ["pytest",  "-vv"]
+      BASE_URL: "http://app:3000"  # Use service name instead of localhost
+    command: ["pytest", "-vv"]
+    depends_on:
+      - app

@@ -3,7 +3,7 @@ import os
 import time
 from functools import partial
 from typing import Any
-
+import subprocess
 import pytest
 import pytest_html
 import urllib3
@@ -50,6 +50,16 @@ def pytest_runtest_makereport(item):
         report.extras = extra
 
 
+def resolve_container_ip(hostname):
+    try:
+        output = subprocess.check_output(['getent', 'hosts', hostname])
+        ip = output.decode().split()[0]
+        return ip
+    except Exception as e:
+        print(f"Failed to resolve IP for {hostname}: {e}")
+        return None
+
+
 @pytest.fixture
 def driver(request):
     # Driver setup
@@ -65,12 +75,17 @@ def driver(request):
     driver.quit()
 
 
+@pytest.fixture()
+def go_to_site(driver):
+    driver.get(f"http://{resolve_container_ip('app')}:3000")
+
+
 @pytest.fixture
 def click_and_assert_url_change(
-    driver,
-    await_url_changes,
-    get_element_by_selector,
-    selectors,
+        driver,
+        await_url_changes,
+        get_element_by_selector,
+        selectors,
 ):
     # This fixture is for clicking buttons/links on pages and waiting for the
     # url to change and for the new page to fully load.
@@ -84,7 +99,7 @@ def click_and_assert_url_change(
             await_url_changes(previous_url, timeout=timeout)
             WebDriverWait(driver, timeout).until(
                 lambda driver: driver.execute_script("return document.readyState")
-                == "complete"
+                               == "complete"
             )
         except (TimeoutException, urllib3.exceptions.ReadTimeoutError):
             pytest.fail(f"Page navigation failed, still on {previous_url} page")
@@ -111,22 +126,22 @@ def await_clickable(get_element_by_selector):
 @pytest.fixture
 def get_element_by_selector(driver, request, selectors):
     def wrap(
-        selector: Selector,
-        timeout=10,
-        ec: Any = EC.presence_of_element_located,
+            selector: Selector,
+            timeout=10,
+            ec: Any = EC.presence_of_element_located,
     ):
         try:
             WebDriverWait(driver, timeout).until(
                 lambda driver: driver.execute_script("return document.readyState")
-                == "complete"
+                               == "complete"
             )
             return WebDriverWait(driver, timeout).until(
                 ec((selector.by, selector.value))
             )
         except (
-            TimeoutException,
-            WebDriverException,
-            urllib3.exceptions.ReadTimeoutError,
+                TimeoutException,
+                WebDriverException,
+                urllib3.exceptions.ReadTimeoutError,
         ):
             pytest.fail(
                 f"Could not find selector {selector.value} on {driver.current_url}"
@@ -138,14 +153,14 @@ def get_element_by_selector(driver, request, selectors):
 @pytest.fixture
 def get_element_by_xpath(driver):
     def wrap(
-        locator: str,
-        ec: Any = EC.presence_of_element_located,
-        timeout: float = 10,
+            locator: str,
+            ec: Any = EC.presence_of_element_located,
+            timeout: float = 10,
     ):
         try:
             WebDriverWait(driver, timeout).until(
                 lambda driver: driver.execute_script("return document.readyState")
-                == "complete"
+                               == "complete"
             )
             wait = WebDriverWait(driver, timeout)
             return wait.until(ec((By.XPATH, locator)))
@@ -158,16 +173,11 @@ def get_element_by_xpath(driver):
 @pytest.fixture
 def send_keys_to_input(driver, await_clickable):
     def wrap(
-        selector: Selector,
-        text_to_send: str,
+            selector: Selector,
+            text_to_send: str,
     ):
         web_element = await_clickable(selector)
         web_element.clear()
         return web_element.send_keys(text_to_send)
 
     return wrap
-
-
-@pytest.fixture()
-def go_to_site(driver):
-    driver.get(os.getenv("BASE_URL", "http://localhost:3000"))
